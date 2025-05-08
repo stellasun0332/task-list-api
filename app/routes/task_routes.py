@@ -8,10 +8,10 @@ import os, requests
 
 SLACK_API_TOKEN = os.environ.get("SLACK_API_TOKEN")
 
-tasks_bp = Blueprint("tasks_bp", __name__, url_prefix="/tasks")
+bp = Blueprint("tasks_bp", __name__, url_prefix="/tasks")
 
 
-@tasks_bp.post("")
+@bp.post("")
 def create_a_task():
     request_body = request.get_json()
     validate_task_data(request_body)
@@ -23,7 +23,7 @@ def create_a_task():
     return {"task": new_task.to_dict()}, 201
 
 
-@tasks_bp.get("")
+@bp.get("")
 def get_all_tasks():
     query = db.select(Task)
     sort_param = request.args.get("sort")
@@ -37,14 +37,14 @@ def get_all_tasks():
     return [task.to_dict() for task in tasks]
 
 
-@tasks_bp.get("/<task_id>")
+@bp.get("/<task_id>")
 def get_a_task(task_id):
     task = validate_model(Task, task_id)
 
     return {"task": task.to_dict()}, 200
 
 
-@tasks_bp.put("/<task_id>")
+@bp.put("/<task_id>")
 def update_a_task(task_id):
     request_body = request.get_json()
     task = validate_model(Task, task_id)
@@ -55,7 +55,7 @@ def update_a_task(task_id):
     return Response(status=204, mimetype="application/json")
 
 
-@tasks_bp.delete("/<task_id>")
+@bp.delete("/<task_id>")
 def delete_a_task(task_id):
     task = validate_model(Task, task_id)
     db.session.delete(task)
@@ -63,7 +63,7 @@ def delete_a_task(task_id):
     return Response(status=204, mimetype="application/json")
 
 
-@tasks_bp.patch("/<task_id>/mark_complete")
+@bp.patch("/<task_id>/mark_complete")
 def update_complete_task_field(task_id):
     task = validate_model(Task, task_id)
     task.completed_at = datetime.utcnow()
@@ -83,7 +83,7 @@ def update_complete_task_field(task_id):
     return Response(status=204, mimetype="application/json")
 
 
-@tasks_bp.patch("/<task_id>/mark_incomplete")
+@bp.patch("/<task_id>/mark_incomplete")
 def update_incomplete_task_field(task_id):
     task = validate_model(Task, task_id)
     task.completed_at = None

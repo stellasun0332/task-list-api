@@ -21,3 +21,15 @@ def validate_task_data(data):
     if "title" not in data or "description" not in data:
         response = {"details": "Invalid data"}
         abort(make_response(response, 400))
+
+
+def create_model(cls, data):
+    try:
+        new_model = cls.from_dict(data)
+    except:
+        response = {"message": f"missing {cls.__name__} information."}
+        abort(make_response(response), 400)
+
+    db.session.add(new_model)
+    db.session.commit()
+    return new_model.to_dict()
