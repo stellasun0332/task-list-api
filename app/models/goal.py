@@ -1,7 +1,5 @@
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from ..db import db
-from flask import abort, make_response
-from typing import Optional
 
 
 class Goal(db.Model):

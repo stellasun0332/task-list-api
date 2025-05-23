@@ -1,8 +1,7 @@
 from flask import Blueprint, request, Response
-from ..routes.utilities import create_model
+from ..routes.utilities import create_model, validate_model
 from ..models.goal import Goal
 from ..db import db
-from ..routes.utilities import validate_model
 from ..models.task import Task
 
 bp = Blueprint("goals_bp", __name__, url_prefix="/goals")
@@ -27,12 +26,14 @@ def get_all_goals():
 
     for goal in goals:
         response.append(goal.to_dict())
+
     return response
 
 
 @bp.get("/<goal_id>")
 def get_a_goal(goal_id):
     goal = validate_model(Goal, goal_id)
+
     return {"goal": goal.to_dict()}
 
 
@@ -85,7 +86,7 @@ def get_tasks_for_a_given_goal_id(goal_id):
     goal = validate_model(Goal, goal_id)
     tasks_response = []
     for task in goal.tasks:
-        task_data = task.to_dict()
+        task_data = task.to_dict(include_goal_id=True)
         # task_data["goal_id"] = goal.id
         tasks_response.append(task_data)
 

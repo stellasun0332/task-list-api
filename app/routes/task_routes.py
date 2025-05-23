@@ -1,6 +1,6 @@
 from flask import Blueprint, abort, make_response, Blueprint, request, Response
 from ..db import db
-from .utilities import validate_model, validate_task_data
+from .utilities import validate_model, validate_task_data, create_model
 from ..models.task import Task
 from sqlalchemy import desc
 from datetime import datetime
@@ -15,12 +15,8 @@ bp = Blueprint("tasks_bp", __name__, url_prefix="/tasks")
 def create_a_task():
     request_body = request.get_json()
     validate_task_data(request_body)
-    new_task = Task.from_dict(request_body)
 
-    db.session.add(new_task)
-    db.session.commit()
-
-    return {"task": new_task.to_dict()}, 201
+    return {"task": create_model(Task, request_body)}, 201
 
 
 @bp.get("")
@@ -40,8 +36,8 @@ def get_all_tasks():
 @bp.get("/<task_id>")
 def get_a_task(task_id):
     task = validate_model(Task, task_id)
-
-    return {"task": task.to_dict()}, 200
+    include_goal = task.goal_id is not None
+    return {"task": task.to_dict(include_goal_id=include_goal)}, 200
 
 
 @bp.put("/<task_id>")
@@ -58,8 +54,10 @@ def update_a_task(task_id):
 @bp.delete("/<task_id>")
 def delete_a_task(task_id):
     task = validate_model(Task, task_id)
+
     db.session.delete(task)
     db.session.commit()
+
     return Response(status=204, mimetype="application/json")
 
 
@@ -67,6 +65,7 @@ def delete_a_task(task_id):
 def update_complete_task_field(task_id):
     task = validate_model(Task, task_id)
     task.completed_at = datetime.utcnow()
+
     db.session.commit()
 
     slack_message = {
@@ -87,5 +86,7 @@ def update_complete_task_field(task_id):
 def update_incomplete_task_field(task_id):
     task = validate_model(Task, task_id)
     task.completed_at = None
+
     db.session.commit()
+
     return Response(status=204, mimetype="application/json")
